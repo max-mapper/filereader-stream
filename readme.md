@@ -44,3 +44,12 @@ var createReadStream = require('filereader-stream'. [options]);
 * `text`
 
 You can also specify `chunkSize`, default is `8128`. This is how many bytes will be read and written at a time to the stream you get back for each file.
+
+# run the tests
+
+```
+npm install
+npm test
+```
+
+then open your browser to the address provided, open your JS console, and drag and drop files onto the page until the test suite passes/fails
