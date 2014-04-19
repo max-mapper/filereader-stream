@@ -12,10 +12,12 @@ function FileStream(file, options) {
   this._file = file
   this.readable = true
   this.offset = options.offset || 0
+  this.progressiv = options.progressiv || 200
   this.paused = false
-  this.chunkSize = this.options.chunkSize || 8128  
+  this.chunkSize = this.options.chunkSize || 8128
+  this.speedOffset = 0
 
-  var tags = ['name','size','type','lastModifiedDate']
+  var tags = ['name','size','type','lastModifiedDate','fullPath']
   tags.forEach(function (thing) {
      this[thing] = file[thing]
    }, this)      
@@ -25,7 +27,7 @@ function FileStream(file, options) {
 FileStream.prototype._FileReader = function() {
   var self = this
   var reader = new FileReader()
-  const outputType = this.options.output
+  const outputType = this.options.output  
 
   reader.onloadend = function loaded(event) {
     var data = event.target.result      
@@ -33,7 +35,7 @@ FileStream.prototype._FileReader = function() {
       data = new Buffer(new Uint8Array(event.target.result))
     self.dest.write(data)        
     if (self.offset < self._file.size) {
-      self.emit('progress', self.offset)
+      self.emit('offset', self.offset)
       !self.paused && self.readChunk(outputType)      
       return
     }
@@ -42,7 +44,7 @@ FileStream.prototype._FileReader = function() {
   reader.onerror = function(e) {
     self.emit('error', e.target.error)
   }
-
+  this.startIntervals()
   return reader
 }
 
@@ -60,36 +62,60 @@ FileStream.prototype.readChunk = function(outputType) {
     this.reader.readAsText(slice)  
 }
 
+FileStream.prototype.startIntervals = function() {
+  var self = this
+
+  this.progressInterval = setInterval(function(){
+    self.emit('progress', self.offset)
+  },this.progressiv)  
+
+  this.speedInterval = setInterval(function(){    
+    self.emit('speed', self.offset - self.speedOffset)
+    self.speedOffset = self.offset
+  },1000) // 1 second
+
+}
+
+FileStream.prototype.clearIntervals = function() {
+    this.speedInterval && clearInterval(this.speedInterval)
+    this.progressInterval && clearInterval(this.progressInterval)
+}
+
+
 FileStream.prototype._end = function() {
   if (this.dest !== console && (!this.options || this.options.end !== false)) {
     this.dest.end && this.dest.end()
     this.dest.close && this.dest.close()
     this.emit('end', this._file.size)
+    this.clearIntervals()
   }  
 }
 
 FileStream.prototype.pipe = function pipe(dest, options) {
   this.reader = this._FileReader()
   this.readChunk(this.options.output)
-  this.dest = dest
+  this.dest = dest  
   return dest
 }
 
 FileStream.prototype.pause = function() {
   this.paused = true
-  return this.offset
+  this.clearIntervals()
+  this.emit('pause', this.offset)
 }
 
 FileStream.prototype.resume = function() {
   this.paused = false
+  this.startIntervals()
   this.readChunk(this.options.output)
+  this.emit('resume', this.offset)
 }
 
 FileStream.prototype.abort = function() {
   this.paused = true
   this.reader.abort()
-  this._end()
-  return this.offset
+  self.emit('abort', this.offset)
+  this._end()  
 }
 
 inherits(FileStream, EventEmitter)
