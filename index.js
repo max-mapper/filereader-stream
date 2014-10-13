@@ -83,11 +83,13 @@ FileStream.prototype.pipe = function pipe(dest, options) {
 
 FileStream.prototype.pause = function() {
   this.paused = true
+  this.emit("pause", this.offset)
   return this.offset
 }
 
 FileStream.prototype.resume = function() {
   this.paused = false
+  this.emit("resume", this.offset)
   this.readChunk(this.options.output)
 }
 
