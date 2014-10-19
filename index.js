@@ -32,7 +32,7 @@ FileStream.prototype._FileReader = function() {
     if (data instanceof ArrayBuffer)
       data = new Buffer(new Uint8Array(event.target.result))
 
-    var ok = self.dest.write(data);
+    var ok = self.dest.write(data)
     if (!ok) {
       self.pause()
       self.dest.once("drain", self.resume.bind(self))
