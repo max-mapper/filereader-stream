@@ -34,7 +34,7 @@ FileStream.prototype._FileReader = function() {
 
     var ok = self.dest.write(data);
     if (!ok) {
-      self.pause();
+      self.pause()
       self.dest.once("drain", self.resume.bind(self))
     }
 
