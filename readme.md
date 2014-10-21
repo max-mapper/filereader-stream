@@ -1,6 +1,6 @@
 # filereader-stream
 
-Given a HTML5 File object (from e.g. HTML5 drag and drops), turn it into a readable stream.
+Given an HTML5 File object (from e.g. HTML5 drag and drops), turn it into a readable stream.
 
 [![NPM](https://nodei.co/npm/filereader-stream.png)](https://nodei.co/npm/filereader-stream/)
 
@@ -33,7 +33,7 @@ test('should read file when one is dropped', function(t) {
 # usage
 
 ```js
-var createReadStream = require('filereader-stream'. [options]);
+var createReadStream = require('filereader-stream', [options]);
 ```
 
 `options` is optional and can specify `output`. Possible values are:
