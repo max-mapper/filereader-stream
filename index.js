@@ -1,95 +1,59 @@
-var inherits = require('inherits')
-var EventEmitter = require('events').EventEmitter
-
-module.exports = FileStream
-
-function FileStream(file, options) { 
-  if (!(this instanceof FileStream))
-    return new FileStream(file, options)
-  options = options || {}
-  options.output = options.output || 'arraybuffer'
-  this.options = options
-  this._file = file
-  this.readable = true
-  this.offset = options.offset || 0
-  this.paused = false
-  this.chunkSize = this.options.chunkSize || 8128  
-
-  var tags = ['name','size','type','lastModifiedDate']
-  tags.forEach(function (thing) {
-     this[thing] = file[thing]
-   }, this)      
-}
-
+var inherits = require('inherits');
+var toBuffer = require('typedarray-to-buffer');
+var Readable = require('stream').Readable;
   
-FileStream.prototype._FileReader = function() {
-  var self = this
-  var reader = new FileReader()
-  const outputType = this.options.output
-
-  reader.onloadend = function loaded(event) {
-    var data = event.target.result      
-    if (data instanceof ArrayBuffer)
-      data = new Buffer(new Uint8Array(event.target.result))
-    self.dest.write(data)        
-    if (self.offset < self._file.size) {
-      self.emit('progress', self.offset)
-      !self.paused && self.readChunk(outputType)      
-      return
-    }
-    self._end()
+function FileStream(file, options) {
+  if (!(this instanceof FileStream))
+    return new FileStream(file, options);
+    
+  var self = this;
+  Readable.call(this);
+      
+  this.file = file;
+  this.options = options || {};
+  this.chunkSize = this.options.chunkSize || 16384;
+  this.offset = 0;
+  
+  var tags = ['name', 'size', 'type', 'lastModifiedDate'];
+  tags.forEach(function (thing) {
+    this[thing] = file[thing];
+  }, this);
+  
+  if (typeof FileReader !== 'undefined') {
+    this.async = true;
+    this.reader = new FileReader();
+    this.reader.onload = function() {
+      self._emitChunk(self.reader.result);
+    };
+  } else if (typeof FileReaderSync !== 'undefined') {
+    // web workers in Firefox don't support async FileReader, so use FileReaderSync
+    this.async = false;
+    this.reader = new FileReaderSync();
+  } else {
+    throw new Error('No filereader support');
   }
-  reader.onerror = function(e) {
-    self.emit('error', e.target.error)
+}
+
+inherits(FileStream, Readable);
+
+FileStream.prototype._read = function(bytes) {
+  if (this.offset >= this.size) return;
+  
+  var blob = this.file.slice(this.offset, this.offset + this.chunkSize);
+  if (this.async) {
+    this.reader.readAsArrayBuffer(blob);
+  } else {
+    this._emitChunk(this.reader.readAsArrayBuffer(blob));
   }
+};
 
-  return reader
-}
+FileStream.prototype._emitChunk = function(chunk) {
+  var buf = toBuffer(new Uint8Array(chunk));
+  this.offset += buf.length;
+  this.push(buf);
+  
+  if (this.offset === this.size)
+    this.push(null);
+};
 
-FileStream.prototype.readChunk = function(outputType) {
-  var end = this.offset + this.chunkSize
-  var slice = this._file.slice(this.offset, end)
-  this.offset = end
-  if (outputType === 'binary')
-    this.reader.readAsBinaryString(slice)
-  else if (outputType === 'dataurl')
-    this.reader.readAsDataURL(slice)
-  else if (outputType === 'arraybuffer')
-    this.reader.readAsArrayBuffer(slice)
-  else if (outputType === 'text')
-    this.reader.readAsText(slice)  
-}
-
-FileStream.prototype._end = function() {
-  if (this.dest !== console && (!this.options || this.options.end !== false)) {
-    this.dest.end && this.dest.end()
-    this.dest.close && this.dest.close()
-    this.emit('end', this._file.size)
-  }  
-}
-
-FileStream.prototype.pipe = function pipe(dest, options) {
-  this.reader = this._FileReader()
-  this.readChunk(this.options.output)
-  this.dest = dest
-  return dest
-}
-
-FileStream.prototype.pause = function() {
-  this.paused = true
-  return this.offset
-}
-
-FileStream.prototype.resume = function() {
-  this.paused = false
-  this.readChunk(this.options.output)
-}
-
-FileStream.prototype.abort = function() {
-  this.paused = true
-  this.reader.abort()
-  this._end()
-  return this.offset
-}
-
-inherits(FileStream, EventEmitter)
+module.exports = FileStream;
