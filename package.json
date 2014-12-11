@@ -1,6 +1,6 @@
 {
   "name": "filereader-stream",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Read an HTML5 File object (from e.g. HTML5 drag and drops) as a stream.",
   "main": "index.js",
   "scripts": {
@@ -25,5 +25,5 @@
   },
   "dependencies": {
     "inherits": "1.0.0"
-  }  
+  }
 }
