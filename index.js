@@ -25,7 +25,7 @@ function FileStream(file, options) {
 FileStream.prototype._FileReader = function() {
   var self = this
   var reader = new FileReader()
-  const outputType = this.options.output
+  var outputType = this.options.output
 
   reader.onloadend = function loaded(event) {
     var data = event.target.result      
