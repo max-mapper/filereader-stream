@@ -38,14 +38,8 @@ var fileReaderStream = require('filereader-stream');
 var createReadStream = fileReaderStream(file, [options]);
 ```
 
-`options` is optional and can specify `output`. Possible values are:
-
-* `arraybuffer` [default]
-* `binary` 
-* `dataurl`
-* `text`
-
-You can also specify `chunkSize`, default is `8128`. This is how many bytes will be read and written at a time to the stream you get back for each file.
+`options` is optional and can specify `chunkSize`, default is `16384`. This is how many bytes will be read and written at a 
+time to the stream.
 
 # run the tests
 
