@@ -33,7 +33,9 @@ test('should read file when one is dropped', function(t) {
 # usage
 
 ```js
-var createReadStream = require('filereader-stream', [options]);
+var fileReaderStream = require('filereader-stream');
+
+var createReadStream = fileReaderStream(file, [options]);
 ```
 
 `options` is optional and can specify `output`. Possible values are:
