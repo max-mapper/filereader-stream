@@ -3,7 +3,7 @@ var EventEmitter = require('events').EventEmitter
 
 module.exports = FileStream
 
-function FileStream(file, options) { 
+function FileStream(file, options) {
   if (!(this instanceof FileStream))
     return new FileStream(file, options)
   options = options || {}
@@ -13,28 +13,34 @@ function FileStream(file, options) {
   this.readable = true
   this.offset = options.offset || 0
   this.paused = false
-  this.chunkSize = this.options.chunkSize || 8128  
+  this.chunkSize = this.options.chunkSize || 8128
 
   var tags = ['name','size','type','lastModifiedDate']
   tags.forEach(function (thing) {
      this[thing] = file[thing]
-   }, this)      
+   }, this)
 }
 
-  
+
 FileStream.prototype._FileReader = function() {
   var self = this
   var reader = new FileReader()
   var outputType = this.options.output
 
   reader.onloadend = function loaded(event) {
-    var data = event.target.result      
+    var data = event.target.result
     if (data instanceof ArrayBuffer)
       data = new Buffer(new Uint8Array(event.target.result))
-    self.dest.write(data)        
+
+    var ok = self.dest.write(data)
+    if (!ok) {
+      self.pause()
+      self.dest.once("drain", self.resume.bind(self))
+    }
+
     if (self.offset < self._file.size) {
       self.emit('progress', self.offset)
-      !self.paused && self.readChunk(outputType)      
+      !self.paused && self.readChunk(outputType)
       return
     }
     self._end()
@@ -57,7 +63,7 @@ FileStream.prototype.readChunk = function(outputType) {
   else if (outputType === 'arraybuffer')
     this.reader.readAsArrayBuffer(slice)
   else if (outputType === 'text')
-    this.reader.readAsText(slice)  
+    this.reader.readAsText(slice)
 }
 
 FileStream.prototype._end = function() {
@@ -65,7 +71,7 @@ FileStream.prototype._end = function() {
     this.dest.end && this.dest.end()
     this.dest.close && this.dest.close()
     this.emit('end', this._file.size)
-  }  
+  }
 }
 
 FileStream.prototype.pipe = function pipe(dest, options) {
@@ -77,11 +83,13 @@ FileStream.prototype.pipe = function pipe(dest, options) {
 
 FileStream.prototype.pause = function() {
   this.paused = true
+  this.emit("pause", this.offset)
   return this.offset
 }
 
 FileStream.prototype.resume = function() {
   this.paused = false
+  this.emit("resume", this.offset)
   this.readChunk(this.options.output)
 }
 
