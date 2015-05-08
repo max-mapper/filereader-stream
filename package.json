@@ -18,7 +18,7 @@
   "homepage": "https://github.com/maxogden/filereader-stream",
   "devDependencies": {
     "drag-and-drop-files": "~0.0.1",
-    "concat-stream": "~1.2.1",
+    "concat-stream": "~1.4.8",
     "tape": "~2.3.2",
     "browserify": "~3.11.0",
     "beefy": "~0.6.0"
