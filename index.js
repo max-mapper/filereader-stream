@@ -39,14 +39,15 @@ FileStream.prototype._FileReader = function() {
         self.emit('error', new Error("write after end"));
     }
     else {
-      self.dest.write(data)
-      if (self.offset < self._file.size) {
-        self.emit('progress', self.offset)
-        !self.paused && self.readChunk(outputType)
-        return
-      }
-      hasEnded = true
-      self._end()
+      self.dest.write(data, function() {
+        if (self.offset < self._file.size) {
+          self.emit('progress', self.offset)
+          !self.paused && self.readChunk(outputType)
+          return
+        }
+        hasEnded = true
+        self._end()
+      })
     }
   }
   reader.onerror = function(e) {
