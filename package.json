@@ -24,6 +24,6 @@
     "beefy": "~0.6.0"
   },
   "dependencies": {
-    "inherits": "1.0.0"
+    "inherits": "^2.0"
   }
 }
