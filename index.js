@@ -21,6 +21,7 @@ function FileStream(file, options) {
    }, this)      
 }
 
+inherits(FileStream, EventEmitter)
   
 FileStream.prototype._FileReader = function() {
   var self = this
@@ -103,4 +104,3 @@ FileStream.prototype.abort = function() {
   return this.offset
 }
 
-inherits(FileStream, EventEmitter)
