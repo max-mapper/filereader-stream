@@ -21,23 +21,35 @@ function FileStream(file, options) {
    }, this)      
 }
 
+inherits(FileStream, EventEmitter)
   
 FileStream.prototype._FileReader = function() {
   var self = this
   var reader = new FileReader()
   var outputType = this.options.output
 
+  var hasEnded = false
   reader.onloadend = function loaded(event) {
     var data = event.target.result      
     if (data instanceof ArrayBuffer)
       data = new Buffer(new Uint8Array(event.target.result))
-    self.dest.write(data)        
-    if (self.offset < self._file.size) {
-      self.emit('progress', self.offset)
-      !self.paused && self.readChunk(outputType)      
-      return
+    if (hasEnded) {
+      var length = event.lengthComputable
+        ? event.total : new Uint8Array(event.target.result).length;
+      if (length > 0)
+        self.emit('error', new Error("write after end"));
     }
-    self._end()
+    else {
+      self.dest.write(data, function() {
+        if (self.offset < self._file.size) {
+          self.emit('progress', self.offset)
+          !self.paused && self.readChunk(outputType)
+          return
+        }
+        hasEnded = true
+        self._end()
+      })
+    }
   }
   reader.onerror = function(e) {
     self.emit('error', e.target.error)
@@ -92,4 +104,3 @@ FileStream.prototype.abort = function() {
   return this.offset
 }
 
-inherits(FileStream, EventEmitter)
