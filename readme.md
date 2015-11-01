@@ -2,13 +2,10 @@
 
 Given an HTML5 File object (from e.g. HTML5 drag and drops), turn it into a readable stream.
 
-[![NPM](https://nodei.co/npm/filereader-stream.png)](https://nodei.co/npm/filereader-stream/)
-
-If you want this for FileLists then definitely check out [fileliststream](http://github.com/brianloveswords/fileliststream).
 
 # install
 
-Use it with npm & [browserify >= 3.0](/substack/node-browserify)
+Use it with npm & [browserify](/substack/node-browserify)
 
 ```bash
 $ npm install filereader-stream
@@ -16,14 +13,14 @@ $ npm install filereader-stream
 
 # example
 ```js
-var drop = require('drag-and-drop-files');
-var concat = require('concat-stream');
-var createReadStream = require('filereader-stream');
+var drop = require('drag-and-drop-files')
+var concat = require('concat-stream')
+var fileReaderStream = require('filereader-stream')
 
 test('should read file when one is dropped', function(t) {
   drop(document.body, function(files) {
     var first = files[0]
-    createReadStream(first).pipe(concat(function(contents) {
+    fileReaderStream(first).pipe(concat(function(contents) {
       // contents is the contents of the entire file
     }))
   })
@@ -33,19 +30,16 @@ test('should read file when one is dropped', function(t) {
 # usage
 
 ```js
-var fileReaderStream = require('filereader-stream');
-
-var createReadStream = fileReaderStream(file, [options]);
+var fileReaderStream = require('filereader-stream')
+var readStream = fileReaderStream(file, [options])
 ```
 
-`options` is optional and can specify `output`. Possible values are:
+`fileReaderStream` is a Streams 2 Readable Stream, so you can do all the streamy things with it like `.pipe` etc.
 
-* `arraybuffer` [default]
-* `binary` 
-* `dataurl`
-* `text`
+`options`:
 
-You can also specify `chunkSize`, default is `8128`. This is how many bytes will be read and written at a time to the stream you get back for each file.
+* `chunkSize` - default `1024 * 1024` (1MB) - How many bytes will be read at a time
+* `offset` - default `0` - Where in the file to start reading
 
 # run the tests
 

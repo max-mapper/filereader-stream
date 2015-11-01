@@ -5,7 +5,7 @@ var toBuffer = require('typedarray-to-buffer')
 module.exports = function (file, options) {
   options = options || {}
   var offset = options.offset || 0
-  var chunkSize = options.chunkSize || 8192
+  var chunkSize = options.chunkSize || 1024 * 1024 // default 1MB chunk has tolerable perf on large files
   var fileReader = new FileReader(file)
 
   var from = from2(function (size, cb) {

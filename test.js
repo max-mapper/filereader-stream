@@ -5,8 +5,8 @@ var frs = require('./')
 
 drop(document.body, function (files) {
   var first = files[0]
-  var LEN = 4096
-  var s = frs(first, {chunkSize: 4096})
+  var LEN = 1024 * 512
+  var s = frs(first, {chunkSize: LEN})
 
   test('should read file when one is dropped', function (t) {
     var buffs = []
