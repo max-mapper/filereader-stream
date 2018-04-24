@@ -24,7 +24,7 @@ module.exports = function (file, options) {
   from.name = file.name
   from.size = file.size
   from.type = file.type
-  from.lastModifiedDate = file.lastModifiedDate
+  from.lastModified = file.lastModified
 
   fileReader.onerror = function (err) {
     from.destroy(err)
