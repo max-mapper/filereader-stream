@@ -40,6 +40,7 @@ var readStream = fileReaderStream(file, [options])
 
 * `chunkSize` - default `1024 * 1024` (1MB) - How many bytes will be read at a time
 * `offset` - default `0` - Where in the file to start reading
+* `convertBuffers` - default `true` - Option to disable converting ArrayBuffer/typedarraybuffer to buffer using [feross/typedarray-to-buffer](https://github.com/feross/typedarray-to-buffer).
 
 # run the tests
 
