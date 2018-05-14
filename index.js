@@ -6,13 +6,14 @@ module.exports = function (file, options) {
   options = options || {}
   var offset = options.offset || 0
   var chunkSize = options.chunkSize || 1024 * 1024 // default 1MB chunk has tolerable perf on large files
+  var convertBuffers = options.convertBuffers != null ? options.convertBuffers : true
   var fileReader = new FileReader(file)
 
   var from = from2(function (size, cb) {
     if (offset >= file.size) return cb(null, null)
     fileReader.onloadend = function loaded (event) {
       var data = event.target.result
-      if (data instanceof ArrayBuffer) data = toBuffer(new Uint8Array(event.target.result))
+      if (convertBuffers && data instanceof ArrayBuffer) data = toBuffer(new Uint8Array(event.target.result))
       cb(null, data)
     }
     var end = offset + chunkSize
